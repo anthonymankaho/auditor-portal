@@ -18,6 +18,14 @@ Live: <https://anthonymankaho.github.io/auditor-portal/>
   everything. No GitHub sign-in, no vault access, no other content is reachable.
 - Wrong codes: 5 attempts, then a 30-second client pause (server remains the
   authority). The system opens in a full-screen viewer with reload / lock.
+- **No second login:** the accounting systems carry their own username/password
+  workflow gate. The portal provisions a dedicated `auditor` account through the
+  system's own account machinery and opens a session automatically — MPL in
+  read-only *review* mode, with the external FINSYS tile hidden. An existing
+  session (e.g. the owner's master account) is never replaced. Auditors only
+  ever need the access code; no login ID is required anywhere.
+- Opened anywhere other than the live origin (e.g. a local file preview), the
+  page shows a "design preview" banner and does not attempt to unlock.
 
 ## Administration (owner only)
 

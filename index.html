@@ -246,6 +246,14 @@ footer{border-top:1px solid var(--line-soft);background:#0a0f16b0}
 .stage-overlay .progress{font:600 12px/1 var(--mono);letter-spacing:.12em;color:var(--hue,var(--brass))}
 .stage-overlay .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
 .stage-overlay .err-icon{width:44px;height:44px;color:var(--danger)}
+/* ---------- preview banner ---------- */
+.preview-banner{
+  display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+  padding:10px clamp(16px,4vw,40px);background:#2a2113;border-bottom:1px solid #d4a53c55;
+  color:#ecd9a8;font-size:12.5px;line-height:1.5;text-align:center;
+}
+.preview-banner[hidden]{display:none}
+.preview-banner .btn{min-height:38px}
 /* ---------- misc ---------- */
 .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);font-size:14px;line-height:1.7}
@@ -290,6 +298,11 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
     <button class="btn btn-danger-quiet btn-sm" id="lock-all" type="button" disabled>Lock all <span class="zh" lang="zh-Hant">全部鎖定</span></button>
   </div>
 </header>
+
+<div class="preview-banner" id="preview-banner" hidden>
+  <span>Design preview · 設計預覽 — unlocking only works on the live portal. / 解鎖只於正式入口生效。</span>
+  <a class="btn btn-primary btn-sm" id="preview-open" href="https://anthonymankaho.github.io/auditor-portal/" target="_blank" rel="noopener noreferrer">Open live portal <span class="zh" lang="zh-Hant">開啟正式入口</span></a>
+</div>
 
 <main>
   <section class="engagement">
@@ -380,6 +393,14 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
   var MAX_ATTEMPTS = 5;
   var COOLDOWN_MS = 30000;
   var FETCH_TIMEOUT_MS = 120000;
+  var LIVE_URL = "https://anthonymankaho.github.io/auditor-portal/";
+
+  // The Worker only accepts the live GitHub Pages origin. Anywhere else
+  // (file:// artifact preview, other hosts) is design-review only.
+  var host = location.hostname;
+  var isLive = host === "anthonymankaho.github.io";
+  var isDev = (host === "localhost" || host === "127.0.0.1") && location.protocol !== "file:";
+  var previewMode = !isLive && !isDev;
 
   var memoryCodes = {};
   var state = {};
@@ -484,6 +505,11 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
         input.focus();
       });
       openBtn.addEventListener("click", function () {
+        if (previewMode) {
+          setMsg(c, "Preview only — open the live portal to unlock. · 預覽模式——請到正式入口解鎖。", "warning");
+          document.getElementById("preview-open").focus();
+          return;
+        }
         var code = storeGet(c.key);
         if (!code) { setLocked(c); return; }
         viewerTrigger = openBtn;
@@ -618,6 +644,11 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
   function unlock(c) {
     var s = state[c.key];
     if (s.busy || cooldownRemaining(c) > 0) return;
+    if (previewMode) {
+      setMsg(c, "Preview only — open the live portal to unlock. · 預覽模式——請到正式入口解鎖。", "warning");
+      document.getElementById("preview-open").focus();
+      return;
+    }
     var card = cardOf(c);
     var input = card.querySelector(".code-input");
     var code = input.value.trim();
@@ -628,6 +659,36 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
     }
     viewerTrigger = card.querySelector(".unlock-btn");
     openViewer(c, code);
+  }
+
+  // The accounting systems carry their own username/password workflow gate.
+  // Auditors have no account there, so provision a dedicated read-only
+  // "auditor" session using the system's own account machinery before it
+  // renders. Existing sessions (e.g. the owner's master) are never replaced.
+  function injectAuditorBootstrap(html) {
+    var pw = Array.from(crypto.getRandomValues(new Uint8Array(12)), function (b) {
+      return b.toString(16).padStart(2, "0");
+    }).join("");
+    var boot =
+      "<script>(function(){function run(){try{" +
+      "if(typeof window.loadAccounts!=='function'||typeof window.saveAccounts!=='function'||typeof window.checkSessionAndShowApp!=='function')return;" +
+      "var AK=window.ACCOUNTS_KEY,SK=window.SESSION_KEY;if(!AK||!SK)return;" +
+      "var list=window.loadAccounts()||[];var aud=null;" +
+      "for(var i=0;i<list.length;i++){if(list[i]&&list[i].username==='auditor'){aud=list[i];break;}}" +
+      "if(!aud){aud={username:'auditor',password:'" + pw + "',enabled:true,accessMode:'review'," +
+      "permissions:{journal:true,propreg:true,dncn:true,paymentReq:false,accounting:true,inventory:true,investment:true}};" +
+      "list.push(aud);window.saveAccounts(list);}" +
+      "aud.enabled=true;" +
+      "var existing=null;try{existing=localStorage.getItem(SK);}catch(e){}" +
+      "if(!existing){try{localStorage.setItem(SK,'auditor');}catch(e){return;}window.checkSessionAndShowApp();}" +
+      "else if(existing==='auditor'){window.checkSessionAndShowApp();}" +
+      "}catch(e){}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}})();<\/script>";
+    var m = /<head[^>]*>/i.exec(html);
+    if (m) {
+      var at = m.index + m[0].length;
+      return html.slice(0, at) + boot + html.slice(at);
+    }
+    return boot + html;
   }
 
   function openViewer(c, code) {
@@ -717,7 +778,7 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
     frame.addEventListener("load", function () {
       stageLoading.hidden = true;
     });
-    frame.srcdoc = html;
+    frame.srcdoc = injectAuditorBootstrap(html);
     viewerStage.appendChild(frame);
     loadingTitle.textContent = "Preparing " + c.ticker + " · 準備中";
     loadingProgress.textContent = "";
@@ -808,6 +869,7 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
 
   buildCards();
   updateSession();
+  if (previewMode) document.getElementById("preview-banner").hidden = false;
 })();
 </script>
 </body>
