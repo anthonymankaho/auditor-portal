@@ -385,9 +385,9 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
 
   var API = "https://myvault-api.anthonym-354.workers.dev";
   var COMPANIES = [
-    { key: "gpl", ticker: "GPL", name: "Gold Plume Limited", hue: "#e0b341", mono: "G" },
-    { key: "eic", ticker: "EIC", name: "Essential Investment Consultants Limited", hue: "#5e97e8", mono: "E" },
-    { key: "mpl", ticker: "MPL", name: "Meyer Properties Limited", hue: "#46b98c", mono: "M" }
+    { key: "gpl", ticker: "GPL", name: "Gold Plume Limited", hue: "#e0b341", mono: "G", accountsKey: "gpl_hub_accounts", sessionKey: "gpl_hub_current_session" },
+    { key: "eic", ticker: "EIC", name: "Essential Investment Consultants Limited", hue: "#5e97e8", mono: "E", accountsKey: "eic_hub_accounts", sessionKey: "eic_hub_current_session" },
+    { key: "mpl", ticker: "MPL", name: "Meyer Properties Limited", hue: "#46b98c", mono: "M", accountsKey: "mpl_hub_accounts", sessionKey: "mpl_hub_current_session" }
   ];
   var CODE_PREFIX = "auditor_portal_code_";
   var MAX_ATTEMPTS = 5;
@@ -661,28 +661,31 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
     openViewer(c, code);
   }
 
-  // The accounting systems carry their own username/password workflow gate.
-  // Auditors have no account there, so provision a dedicated read-only
-  // "auditor" session using the system's own account machinery before it
-  // renders. Existing sessions (e.g. the owner's master) are never replaced.
-  function injectAuditorBootstrap(html) {
+  // The accounting systems carry their own username/password workflow gate,
+  // and their account helpers live in a closed script scope (not on window).
+  // So seed the system's own localStorage account/session keys BEFORE its
+  // scripts run: its startup check then opens a dedicated read-only "auditor"
+  // session with no login screen. Existing sessions (e.g. the owner's master)
+  // are never touched.
+  function injectAuditorBootstrap(html, c) {
     var pw = Array.from(crypto.getRandomValues(new Uint8Array(12)), function (b) {
       return b.toString(16).padStart(2, "0");
     }).join("");
     var boot =
-      "<script>(function(){function run(){try{" +
-      "if(typeof window.loadAccounts!=='function'||typeof window.saveAccounts!=='function'||typeof window.checkSessionAndShowApp!=='function')return;" +
-      "var AK=window.ACCOUNTS_KEY,SK=window.SESSION_KEY;if(!AK||!SK)return;" +
-      "var list=window.loadAccounts()||[];var aud=null;" +
-      "for(var i=0;i<list.length;i++){if(list[i]&&list[i].username==='auditor'){aud=list[i];break;}}" +
+      "<script>(function(){try{" +
+      "var AK='" + c.accountsKey + "',SK='" + c.sessionKey + "';" +
+      "var existing=localStorage.getItem(SK);" +
+      "if(existing)return;" +
+      "var list=[];try{list=JSON.parse(localStorage.getItem(AK)||'[]');}catch(e){list=[];}" +
+      "if(!Array.isArray(list))list=[];" +
+      "var aud=null;for(var i=0;i<list.length;i++){if(list[i]&&list[i].username==='auditor'){aud=list[i];break;}}" +
       "if(!aud){aud={username:'auditor',password:'" + pw + "',enabled:true,accessMode:'review'," +
       "permissions:{journal:true,propreg:true,dncn:true,paymentReq:false,accounting:true,inventory:true,investment:true}};" +
-      "list.push(aud);window.saveAccounts(list);}" +
+      "list.push(aud);}" +
       "aud.enabled=true;" +
-      "var existing=null;try{existing=localStorage.getItem(SK);}catch(e){}" +
-      "if(!existing){try{localStorage.setItem(SK,'auditor');}catch(e){return;}window.checkSessionAndShowApp();}" +
-      "else if(existing==='auditor'){window.checkSessionAndShowApp();}" +
-      "}catch(e){}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}})();<\/script>";
+      "localStorage.setItem(AK,JSON.stringify(list));" +
+      "localStorage.setItem(SK,'auditor');" +
+      "}catch(e){}})();<\/script>";
     var m = /<head[^>]*>/i.exec(html);
     if (m) {
       var at = m.index + m[0].length;
@@ -778,7 +781,7 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
     frame.addEventListener("load", function () {
       stageLoading.hidden = true;
     });
-    frame.srcdoc = injectAuditorBootstrap(html);
+    frame.srcdoc = injectAuditorBootstrap(html, c);
     viewerStage.appendChild(frame);
     loadingTitle.textContent = "Preparing " + c.ticker + " · 準備中";
     loadingProgress.textContent = "";
