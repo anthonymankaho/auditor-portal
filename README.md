@@ -10,10 +10,11 @@ Live: <https://anthonymankaho.github.io/auditor-portal/>
 ## How it works
 
 - Single self-contained `index.html` — no build step, no external assets.
-- Each company is unlocked with its own access code. The code is sent to the
-  MyVault Worker (`accounting-system` action), verified server-side against a
-  Worker secret, and only then does the Worker stream the private system HTML
-  from the company's private GitHub repo using a server-side read token.
+- Each company is unlocked with its own access code, set by the owner in the
+  MyVault OS Accounting view. The code is sent to the MyVault Worker
+  (`accounting-system` action), verified server-side, and only then does the
+  Worker stream the private system HTML from the company's private GitHub repo
+  using a server-side read token.
 - Codes live in `sessionStorage` only (per browser tab). Closing the tab locks
   everything. No GitHub sign-in, no vault access, no other content is reachable.
 - Wrong codes: 5 attempts, then a 30-second client pause (server remains the
@@ -29,19 +30,24 @@ Live: <https://anthonymankaho.github.io/auditor-portal/>
 
 ## Administration (owner only)
 
-The Worker needs four secrets (set interactively — never commit values):
+**Access codes are set in the app, not on this machine.** Sign in with GitHub
+at <https://anthonymankaho.github.io/myvault-os/#accounting> and use the
+**Owner Console / 管理員** panel to type one code per company (GPL / EIC / MPL)
+and press **Save code**. Codes are stored server-side in the Worker's KV
+(`auditor-code:<system>`), take effect immediately, and are never displayed
+again — type a new one any time to replace it. No codes are generated or stored
+locally.
+
+The Worker still needs one secret, set interactively (never commit the value):
 
 ```
 cd <myvault-os>/worker
-npx wrangler secret put GH_REPO_READ_TOKEN     # fine-grained PAT, Contents:read on GPL/EIC/MPL only
-npx wrangler secret put GPL_STANDALONE_CODE    # auditor code for GPL
-npx wrangler secret put EIC_STANDALONE_CODE    # auditor code for EIC
-npx wrangler secret put MPL_STANDALONE_CODE    # auditor code for MPL
+npx wrangler secret put GH_REPO_READ_TOKEN   # fine-grained PAT, Contents:read on GPL/EIC/MPL only
 ```
 
 Create the fine-grained PAT at
 <https://github.com/settings/personal-access-tokens/new> — repository access:
 only `GPL`, `EIC`, `MPL`; permissions: Contents → Read-only.
 
-Until the secrets are set the portal shows a clear "service not ready" message
-and releases no data.
+Until a company's code is set the portal shows a clear "service not ready"
+message for that company and releases no data (fail-closed).
