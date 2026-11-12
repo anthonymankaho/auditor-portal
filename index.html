@@ -168,6 +168,7 @@ h1 .zh{display:block;margin-top:10px;font-size:.52em;color:var(--muted);letter-s
 .card-body{margin-top:auto;display:flex;flex-direction:column;gap:12px}
 .code-label{display:block;font:600 12px/1.4 var(--sans);color:var(--muted);letter-spacing:.03em}
 .code-label .zh{font-weight:500;opacity:.85}
+.code-hint{font-weight:400;font-size:10.5px;color:var(--faint);letter-spacing:.02em}
 .code-row{display:flex;gap:8px}
 .code-wrap{position:relative;flex:1;min-width:0}
 .code-input{
@@ -465,10 +466,10 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
         '<p class="company-sub">Accounting system · <span class="zh" lang="zh-Hant">會計系統</span></p>' +
         '<div class="card-body">' +
           '<div class="gate">' +
-            '<label class="code-label" for="code-' + c.key + '">Access code · <span class="zh" lang="zh-Hant">存取碼</span></label>' +
+            '<label class="code-label" for="code-' + c.key + '">Access code · <span class="zh" lang="zh-Hant">存取碼</span> <span class="code-hint">— issued by the administrator · 由管理員發出</span></label>' +
             '<div class="code-row">' +
               '<span class="code-wrap">' +
-                '<input class="code-input" id="code-' + c.key + '" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="••••••••" aria-describedby="msg-' + c.key + '">' +
+                '<input class="code-input" id="code-' + c.key + '" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX" aria-describedby="msg-' + c.key + '">' +
                 '<button class="reveal" type="button" aria-pressed="false" aria-label="Show access code · 顯示存取碼">' +
                   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.6"/></svg>' +
                 "</button>" +
