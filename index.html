@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0a0f16">
-<meta name="description" content="Independent auditor access to the accounting systems of Gold Plume Limited, Essential Investment Consultants Limited and Meyer Properties Limited.">
+<meta name="description" content="Independent auditor access to the accounting systems of Gold Plume Limited, Essential Investment Consultants Limited, Meyer Properties Limited, IDEAL UNIVERSAL LIMITED and MEYER (CHINA) INVESTMENTS LIMITED.">
 <title>Auditor Access · 審計員入口</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 4 56 18v28L32 60 8 46V18Z' fill='%230a0f16' stroke='%23d4a53c' stroke-width='4'/%3E%3Cpath d='M32 18v24M22 26l10-8 10 8M20 34h8l-4 8h-8zM36 34h8l4 8h-8z' fill='none' stroke='%23d4a53c' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -142,6 +142,8 @@ h1 .zh{display:block;margin-top:10px;font-size:.52em;color:var(--muted);letter-s
 }
 .card:nth-child(2){animation-delay:.09s}
 .card:nth-child(3){animation-delay:.18s}
+.card:nth-child(4){animation-delay:.27s}
+.card:nth-child(5){animation-delay:.36s}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}}
 .card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;
   background:linear-gradient(90deg,transparent,var(--hue) 30%,var(--hue) 70%,transparent);opacity:.65;transition:opacity .22s}
@@ -295,7 +297,7 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
     <span lang="zh-Hant">審計員入口 · 獨立工作區</span>
   </div>
   <div class="topbar-right">
-    <span class="session-chip" id="session-chip"><span class="pip"></span><span class="chip-text" id="session-text">0 / 3 UNLOCKED · 已解鎖</span></span>
+    <span class="session-chip" id="session-chip"><span class="pip"></span><span class="chip-text" id="session-text">0 / 5 UNLOCKED · 已解鎖</span></span>
     <button class="btn btn-danger-quiet btn-sm" id="lock-all" type="button" disabled>Lock all <span class="zh" lang="zh-Hant">全部鎖定</span></button>
   </div>
 </header>
@@ -310,10 +312,10 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
     <p class="eyebrow">Private &amp; Confidential · 私人及機密</p>
     <h1>Independent Auditor Workspace<span class="zh" lang="zh-Hant">獨立審計工作區</span></h1>
     <p class="lead">
-      Access the accounting systems of the <b>three companies</b> below. Each system is unlocked with its own
+      Access the accounting systems of the <b>five companies</b> below. Each system is unlocked with its own
       access code, verified on the server before any data is released. This portal is an isolated entry —
       no other workspace content is reachable from here.
-      <span class="zh" lang="zh-Hant">以下為三家公司的會計系統入口。每個系統以獨立存取碼解鎖，伺服器驗證後才會發放資料。本入口完全獨立——無法從此處存取任何其他工作區內容。</span>
+      <span class="zh" lang="zh-Hant">以下為五家公司的會計系統入口。每個系統以獨立存取碼解鎖，伺服器驗證後才會發放資料。本入口完全獨立——無法從此處存取任何其他工作區內容。</span>
     </p>
   </section>
 
@@ -330,7 +332,7 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
     </div>
     <div class="assurance">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17M12 3.5c2.6 2.3 3.9 5.2 3.9 8.5s-1.3 6.2-3.9 8.5c-2.6-2.3-3.9-5.2-3.9-8.5s1.3-6.2 3.9-8.5z"/></svg>
-      <div><strong>Isolated entry</strong><span lang="zh-Hant">獨立入口，只連接這三個系統，別無其他內容。</span></div>
+      <div><strong>Isolated entry</strong><span lang="zh-Hant">獨立入口，只連接這五個系統，別無其他內容。</span></div>
     </div>
   </section>
 </main>
@@ -388,7 +390,9 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
   var COMPANIES = [
     { key: "gpl", ticker: "GPL", name: "Gold Plume Limited", hue: "#e0b341", mono: "G", accountsKey: "gpl_hub_accounts", sessionKey: "gpl_hub_current_session" },
     { key: "eic", ticker: "EIC", name: "Essential Investment Consultants Limited", hue: "#5e97e8", mono: "E", accountsKey: "eic_hub_accounts", sessionKey: "eic_hub_current_session" },
-    { key: "mpl", ticker: "MPL", name: "Meyer Properties Limited", hue: "#46b98c", mono: "M", accountsKey: "mpl_hub_accounts", sessionKey: "mpl_hub_current_session" }
+    { key: "mpl", ticker: "MPL", name: "Meyer Properties Limited", hue: "#46b98c", mono: "M", accountsKey: "mpl_hub_accounts", sessionKey: "mpl_hub_current_session" },
+    { key: "ideal", ticker: "IDEAL", name: "IDEAL UNIVERSAL LIMITED", hue: "#ef6b6b", mono: "I", group: "MEYER GROUP MEMBER · 美亞集團成員", accountsKey: "ideal_hub_accounts", sessionKey: "ideal_hub_current_session" },
+    { key: "mcl", ticker: "MCL", name: "MEYER (CHINA) INVESTMENTS LIMITED", hue: "#e3c341", mono: "C", group: "MEYER GROUP MEMBER · 美亞集團成員", accountsKey: "mcl_hub_accounts", sessionKey: "mcl_hub_current_session" }
   ];
   var CODE_PREFIX = "auditor_portal_code_";
   var MAX_ATTEMPTS = 5;
@@ -463,7 +467,7 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
           '<span class="status-chip"><span class="dot"></span><span class="status-text">Locked · 已鎖定</span></span>' +
         "</div>" +
         '<h2 class="company-name">' + esc(c.name) + "</h2>" +
-        '<p class="company-sub">Accounting system · <span class="zh" lang="zh-Hant">會計系統</span></p>' +
+        '<p class="company-sub">Accounting system · <span class="zh" lang="zh-Hant">會計系統</span>' + (c.group ? '<br><span class="zh" lang="zh-Hant">' + esc(c.group) + "</span>" : "") + "</p>" +
         '<div class="card-body">' +
           '<div class="gate">' +
             '<label class="code-label" for="code-' + c.key + '">Access code · <span class="zh" lang="zh-Hant">存取碼</span> <span class="code-hint">— issued by the administrator · 由管理員發出</span></label>' +
@@ -558,7 +562,7 @@ noscript .ns{display:block;margin:40px auto;width:min(640px,90%);padding:24px;bo
 
   function updateSession() {
     var n = COMPANIES.filter(function (c) { return !!storeGet(c.key); }).length;
-    sessionText.textContent = n + " / 3 UNLOCKED · 已解鎖";
+    sessionText.textContent = n + " / " + COMPANIES.length + " UNLOCKED · 已解鎖";
     sessionChip.classList.toggle("live", n > 0);
     lockAllBtn.disabled = n === 0;
   }
